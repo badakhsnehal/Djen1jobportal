@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# Variables
+IMAGE_NAME="snehal2004/jenkins-docker-demo"
+BUILD_TAG="${BUILD_NUMBER}"
+FULL_TAG="${IMAGE_NAME}:${BUILD_TAG}"
+
+echo " Building Docker image: $FULL_TAG"
+docker build -t $FULL_TAG .
+
+echo " Running container from image..."
+docker run -d -p 3000:3000 --name jenkins-container-$BUILD_NUMBER $FULL_TAG
+
+echo " Removing old containers"
+docker ps -aq --filter "name=jenkins-container-" | xargs -r docker rm -f
+
+echo " Logging into Docker Hub"
+echo "Snehal@7823" | docker login -u "snehal2004" --password-stdin
+
+echo " Pushing image to Docker Hub"
+docker push $FULL_TAG
+
+echo " Build completed and image pushed successfully: $FULL_TAG"
+
+----------------------------------------
+NOTE:
+Go to Build Triggers → Check “Poll SCM” 
+In the Schedule box, enter:
+
+H/5 * * * *
